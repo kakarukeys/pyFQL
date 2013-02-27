@@ -32,12 +32,36 @@ class Condition(object):
 	def __init__(self, expression):
 		self.expression = expression
 
+	def __or__(self, other):
+		return Condition(self.expression + ' or ' + other.expression)
+
+	def __and__(self, other):
+		return Condition(self.expression + ' and ' + other.expression)
+
 class Column(object):
 	def __init__(self, name):
-		self.name = name
+		self.fql_column_name = name
+
+	def __getattr__(self, name):
+		return Column(self.fql_column_name + '.' + name)
 
 	def __eq__(self, other):
-		return Condition(self.name + ' = ' + str(other))
+		return Condition(self.fql_column_name + ' = ' + repr(other))
+
+	def __gt__(self, other):
+		return Condition(self.fql_column_name + ' > ' + repr(other))
+
+	def __lt__(self, other):
+		return Condition(self.fql_column_name + ' < ' + repr(other))
+
+	def __ge__(self, other):
+		return Condition(self.fql_column_name + ' >= ' + repr(other))
+
+	def __le__(self, other):
+		return Condition(self.fql_column_name + ' <= ' + repr(other))
+
+	def __lshift__(self, other):
+		return Condition("{0} in ({1})".format(self.fql_column_name, other.expression))
 
 class QueryError(Exception):
 	pass
@@ -61,13 +85,21 @@ class Query(object):
 
 class Table(object):
 	def __init__(self, name):
-		self.name = name
+		self.fql_table_name = name
 
 	def __getattr__(self, name):
 		return Column(name)
 
 	def select(self, *args):
-		return Query(self.name, (column.name for column in args))
+		return Query(self.fql_table_name, (column.fql_column_name for column in args))
 
 for name in TABLES:
 	vars()[name] = Table(name)
+
+class me(object):
+	def __repr__(self):
+		return 'me()'
+
+class now(object):
+	def __repr__(self):
+		return 'now()'

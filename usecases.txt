@@ -9,23 +9,24 @@ WHERE eid IN (
    WHERE (uid IN (SELECT uid2 FROM friend WHERE uid1 = me())  OR uid = me())
    )
 AND start_time > now()
-AND venue.latitude  < '-22.821757'
-AND venue.latitude  > '-23.056989'
+AND venue.latitude  < -22.821757
+AND venue.latitude  > -23.056989
+
 
 friend_ids = friend.select(friend.uid2).where(friend.uid1 == me())
-event_ids = event_member.select(event_member.eid).where(event_member.uid in friend_ids | event_member.uid == me())
+event_ids = event_member.select(event_member.eid).where(event_member.uid << friend_ids | (event_member.uid == me()))
 event.select(event.name, ......).where(
-  event.eid in event_ids & 
-  event.start_time > now() & 
-  event.venue.latitude < -22.821757 & 
-  event.venue.latitude > -23.056989
+  event.eid << event_ids & 
+  (event.start_time > now()) & 
+  (event.venue.latitude < -22.821757) & 
+  (event.venue.latitude > -23.056989)
 )
 
 
 SELECT name FROM user WHERE is_app_user = 1 AND uid IN (SELECT uid2 FROM friend WHERE uid1 = 22049)
 
 friend_ids = friend.select(friend.uid2).where(friend.uid1 == 22049)
-user.select(user.name).where(user.is_app_user & user.uid in friend_ids)
+user.select(user.name).where(user.is_app_user & user.uid << friend_ids)
 
 
 {
@@ -35,7 +36,7 @@ user.select(user.name).where(user.is_app_user & user.uid in friend_ids)
 
 mq = multiquery()
 mq["albums"] = album.select(album.object_id, ......).where(album.owner == 12345)
-mq["pix"] = photo.select(photo.pid, photo.src_small).where(photo.pid in mq["albums"])
+mq["pix"] = photo.select(photo.pid, photo.src_small).where(photo.pid.in(mq["albums"]))
 
 
 SELECT src_big FROM photo WHERE album_object_id IN 
@@ -43,7 +44,7 @@ SELECT src_big FROM photo WHERE album_object_id IN
    ORDER BY created DESC
 
 obj_ids = album.select(album.object_id).where(album.owner = me() & album.name == "mobile uploads")
-photo.select(photo.src_big).where(photo.album_object_id in obj_ids).order_by(-album.created)
+photo.select(photo.src_big).where(photo.album_object_id << obj_ids).order_by(-album.created)
 
 
 SELECT actor_id, created_time, message, attachment FROM stream 

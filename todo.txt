@@ -1,0 +1,12 @@
+unit tests
+include all functions in FB doc
+use the library to write some code that requires authentication
+conform to python library convention and PEP8
+documentation
+ways to allow other users to use my library
+column name verification
+build process that pulls table names and column names from fb site
+exception handling:
+	raise exception when no column is passed into select
+	raise exception when trying to execute query without a where clause
+improve ipython usage
